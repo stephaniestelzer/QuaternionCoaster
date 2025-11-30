@@ -6,6 +6,9 @@ class CoasterPoint {
     let id = UUID()
     let entity: ModelEntity
     let anchor: AnchorEntity
+    
+    let defaultMaterial = SimpleMaterial(color: .red, isMetallic: false)
+    let selectedMaterial = SimpleMaterial(color: .yellow, isMetallic: true)
 
     init(position: SIMD3<Float>) {
         // Anchor at desired world position
@@ -14,8 +17,10 @@ class CoasterPoint {
         // Sphere to represent the point
         self.entity = ModelEntity(
             mesh: .generateSphere(radius: 0.03),
-            materials: [SimpleMaterial(color: .red, isMetallic: false)]
+            materials: [defaultMaterial]
         )
+        self.entity.name = id.uuidString
+        self.entity.generateCollisionShapes(recursive: true)
 
         // XYZ gizmos
         let size: Float = 0.05
@@ -37,5 +42,14 @@ class CoasterPoint {
 
         // Attach entity to anchor
         anchor.addChild(entity)
+    }
+    
+    // Change color on select
+    func updateSelectionVisuals(isSelected: Bool) {
+        if isSelected {
+            entity.model?.materials = [selectedMaterial]
+        } else {
+            entity.model?.materials = [defaultMaterial]
+        }
     }
 }
