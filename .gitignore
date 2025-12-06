@@ -1,0 +1,26 @@
+# Xcode
+xcuserdata/
+*.xcuserdatad
+*.xcuserstate
+
+# Build artifacts
+DerivedData/
+build/
+
+# SwiftPM
+.swiftpm/xcode/package.xcworkspace/xcuserdata/
+
+# iOS device/simulator files
+*.ipa
+*.dSYM
+*.xcarchive
+
+# Fastlane (if ever used)
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Misc
+*.DS_Store
+
