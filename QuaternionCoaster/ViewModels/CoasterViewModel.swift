@@ -1,5 +1,4 @@
 import Foundation
-import SwiftUI
 import simd
 
 class CoasterViewModel: ObservableObject {
@@ -19,10 +18,10 @@ class CoasterViewModel: ObservableObject {
     }
     
     func handleTap(on pointID: UUID) {
-            if selectedPointID == pointID {
-                selectedPointID = nil
-            } else {
-                selectedPointID = pointID
-            }
+        if selectedPointID == pointID {
+            selectedPointID = nil
+        } else {
+            selectedPointID = pointID
         }
+    }
 }

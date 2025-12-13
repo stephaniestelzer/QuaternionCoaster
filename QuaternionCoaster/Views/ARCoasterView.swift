@@ -2,7 +2,10 @@ import SwiftUI
 import RealityKit
 import ARKit
 
-// MARK: - Root view
+// MARK: - Entry Point
+/* App Entry Point:
+ Create a Coaster View Model (@StateObject annotation makes it persist for life of app)
+*/
 struct CoasterAppRoot: View {
     @StateObject var coasterVM = CoasterViewModel()
     
@@ -15,57 +18,66 @@ struct CoasterAppRoot: View {
 }
 
 // MARK: - ARCoasterView
+/*
+ Creates ARView for the SwiftUI App
+ Required SwiftUI Functions: makeUIView, updateUIView
+ Create a Coordinator because app will have AR Interactions
+*/
 struct ARCoasterView: UIViewRepresentable {
     @ObservedObject var coasterVM: CoasterViewModel
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(coasterVM: coasterVM)
-    }
 
     func makeUIView(context: Context) -> ARView {
         let arView = ARView(frame: .zero)
 
-        // 1. Run AR session
         let config = ARWorldTrackingConfiguration()
-        config.planeDetection = [] // We don't need planes for world anchors
+        config.planeDetection = []
         arView.session.run(config)
         
-        // 1. Add Tap Gesture
         let tapGesture = UITapGestureRecognizer(
             target: context.coordinator,
             action: #selector(Coordinator.handleTap(_:))
         )
         arView.addGestureRecognizer(tapGesture)
-        
-        // Save reference to ARView in coordinator for hit testing
         context.coordinator.arView = arView
 
         return arView
     }
-
+    
+    /**
+        - Called by SwiftUI whenever the view's state or bindings change
+        - Update the AR scene coordinator based on how the user has interacted with the UI
+     */
     func updateUIView(_ uiView: ARView, context: Context) {
-        // This function is called whenever coasterVM changes.
-        // We delegate the logic to the coordinator to keep this clean.
+        // TODO: Handle specific user interactions (i.e. only call "updateSelectionVisuals" when a user taps a specific point)
         context.coordinator.syncPoints(in: uiView)
         context.coordinator.updateSelectionVisuals()
+    }
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(coasterVM: coasterVM)
     }
 }
 
 // MARK: - Coordinator
+/*
+ Object that handles AR interactions.
+ Updates the CoasterViewModel when a user interacts with the 3D scene (i.e. changes the rotation of one of the points).
+*/
 class Coordinator: NSObject {
     var coasterVM: CoasterViewModel
-    weak var arView: ARView? // Weak reference to avoid memory leaks
-    
-    // Keep track of IDs we have already added to the scene
+    weak var arView: ARView?
     private var addedAnchorIds: Set<UUID> = []
 
     init(coasterVM: CoasterViewModel) {
         self.coasterVM = coasterVM
     }
 
+    /**
+     - TRIGGER: Called by SwiftUI whenever the CoasterViewModel changes.
+     - PURPOSE: Update the AR Scene with new points when they are created (always called on initialization)
+     */
     func syncPoints(in arView: ARView) {
         for point in coasterVM.points {
-            // Only add the anchor if we haven't added it yet
             if !addedAnchorIds.contains(point.id) {
                 arView.scene.addAnchor(point.anchor)
                 addedAnchorIds.insert(point.id)
@@ -74,6 +86,10 @@ class Coordinator: NSObject {
         }
     }
     
+    /**
+     - TRIGGER: Called by SwiftUI whenever the CoasterViewModel changes.
+     - PURPOSE: Adjust rendered color of the selected point. CoasterViewModel's selected point was updated by 'handleTap'
+     */
     func updateSelectionVisuals() {
         for point in coasterVM.points {
             let isSelected = (point.id == coasterVM.selectedPointID)
@@ -81,20 +97,16 @@ class Coordinator: NSObject {
         }
     }
     
+    /**
+     - TRIGGER: Called when a user taps on the screen
+     - PURPOSE: Update the CoasterViewModel when a user taps a point on the screen
+     */
     @objc func handleTap(_ sender: UITapGestureRecognizer) {
         guard let arView = self.arView else { return }
-        
-        // Get 2D touch location
         let tapLocation = sender.location(in: arView)
         
-        // Ask ARView: "Did I hit any entity at this point?"
         if let hitEntity = arView.entity(at: tapLocation) {
-            
-            // Check if the entity name matches one of our IDs
             if let uuid = UUID(uuidString: hitEntity.name) {
-                print("Tapped object with ID: \(uuid)")
-                
-                // Update the ViewModel (Must be on main thread)
                 DispatchQueue.main.async {
                     self.coasterVM.handleTap(on: uuid)
                 }
