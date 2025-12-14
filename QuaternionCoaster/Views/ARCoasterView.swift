@@ -71,9 +71,10 @@ struct ARCoasterView: UIViewRepresentable {
 class Coordinator: NSObject {
     var coasterVM: CoasterViewModel
     weak var arView: ARView?
-    private var addedAnchorIds: Set<UUID> = []
+    // private var addedAnchorIds: Set<UUID> = []
+    private var trackAnchors: [UUID: AnchorEntity] = [:]
     
-    // Properties that track if CoasterViewModel changes
+    // Selected Logic
     var lastTrackUpdateID: UUID
 
     init(coasterVM: CoasterViewModel, lastRunSyncPoints: UUID) {
@@ -82,17 +83,34 @@ class Coordinator: NSObject {
     }
 
     /**
-     - TRIGGER: Called by SwiftUI whenever the CoasterViewModel changes.
-     - PURPOSE: Update the AR Scene with new points when they are created (always called on initialization)
+     - TRIGGER: When the ViewModel's 'trackUpdateID' value changes, the view's 'updateUIView' calls this function
+     - PURPOSE: Update the AR Scene with anchor / model entities for the ModelView's 'points' property. Always called on initialization.
      */
     func updateTrackPoints(in arView: ARView) {
         for point in coasterVM.points {
-            if !addedAnchorIds.contains(point.id) {
-                arView.scene.addAnchor(point.anchor)
-                addedAnchorIds.insert(point.id)
-                print("Added point: \(point.id)")
+            if trackAnchors[point.id] == nil {
+                let newAnchor = createARPoint(point)
+                arView.scene.addAnchor(newAnchor)
+                trackAnchors[point.id] = newAnchor
             }
         }
+    }
+    
+    /**
+        Creates anchor and model entites for each of the CoasterPoint's in CoasterViewModel. AKA: Renders the points to the AR Scene
+     */
+    private func createARPoint(_ point: CoasterPoint) -> AnchorEntity {
+        let anchor = AnchorEntity(world: point.position)
+        anchor.setOrientation(point.orientation, relativeTo: nil)
+        
+        // Use the factory to create the model (visual) entity for the point in the scene
+        let pointModelEntity = CoasterPointEntityFactory.createCoasterModel()
+        pointModelEntity.name = point.id.uuidString
+        
+        // Make the model a child of the anchor
+        anchor.addChild(pointModelEntity)
+        
+        return anchor
     }
     
     /**
@@ -101,8 +119,28 @@ class Coordinator: NSObject {
      */
     func updateSelectionVisuals() {
         for point in coasterVM.points {
+            // Get Anchor Entity of selected point
+            guard let anchor = trackAnchors[point.id] else {
+                continue
+            }
+
+            // Find the ModelEntity child by its UUID name
+            guard let entity = anchor.findEntity(named: point.id.uuidString) as? ModelEntity else {
+                print("Error: Could not find ModelEntity child for Anchor \(point.id)")
+                continue
+            }
+            
             let isSelected = (point.id == coasterVM.selectedPointID)
-            point.updateSelectionVisuals(isSelected: isSelected)
+            let newMaterial = isSelected ?
+                CoasterPointEntityFactory.selectedMaterial :
+                CoasterPointEntityFactory.defaultMaterial
+            entity.model?.materials = [newMaterial]
+
+            // Toggle Gizmo Visibility (The gizmo axes are children of this ModelEntity)
+            let gizmoIsVisible = isSelected
+            entity.children.forEach { child in
+                child.isEnabled = gizmoIsVisible
+            }
         }
     }
     

@@ -11,7 +11,7 @@ class CoasterViewModel: ObservableObject {
     @Published var selectedPointID: UUID? = nil
     
     /**
-        Selected Logic Published Variables. Updated to signal to the coordinator in the view to run certain functions
+        Selected Logic Published Variables. Updated to signal to the coordinator in the view to run specific functions
         - trackUpdateID: when this is updated, the 'updateTrackPoints' function will execute in the View
      */
     @Published var trackUpdateID = UUID()
