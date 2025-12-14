@@ -48,13 +48,18 @@ struct ARCoasterView: UIViewRepresentable {
         - Update the AR scene coordinator based on how the user has interacted with the UI
      */
     func updateUIView(_ uiView: ARView, context: Context) {
-        // TODO: Handle specific user interactions (i.e. only call "updateSelectionVisuals" when a user taps a specific point)
-        context.coordinator.syncPoints(in: uiView)
+        if coasterVM.trackUpdateID != context.coordinator.lastTrackUpdateID {
+            print("Running 'updateTrackPoints'")
+            context.coordinator.updateTrackPoints(in: uiView)
+            
+            // Update the coordinator's state so it doesn't run repeatedly.
+            context.coordinator.lastTrackUpdateID = coasterVM.trackUpdateID
+        }
         context.coordinator.updateSelectionVisuals()
     }
     
     func makeCoordinator() -> Coordinator {
-        Coordinator(coasterVM: coasterVM)
+        Coordinator(coasterVM: coasterVM, lastRunSyncPoints: coasterVM.trackUpdateID)
     }
 }
 
@@ -67,16 +72,20 @@ class Coordinator: NSObject {
     var coasterVM: CoasterViewModel
     weak var arView: ARView?
     private var addedAnchorIds: Set<UUID> = []
+    
+    // Properties that track if CoasterViewModel changes
+    var lastTrackUpdateID: UUID
 
-    init(coasterVM: CoasterViewModel) {
+    init(coasterVM: CoasterViewModel, lastRunSyncPoints: UUID) {
         self.coasterVM = coasterVM
+        self.lastTrackUpdateID = lastRunSyncPoints
     }
 
     /**
      - TRIGGER: Called by SwiftUI whenever the CoasterViewModel changes.
      - PURPOSE: Update the AR Scene with new points when they are created (always called on initialization)
      */
-    func syncPoints(in arView: ARView) {
+    func updateTrackPoints(in arView: ARView) {
         for point in coasterVM.points {
             if !addedAnchorIds.contains(point.id) {
                 arView.scene.addAnchor(point.anchor)
