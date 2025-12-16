@@ -14,6 +14,12 @@ struct CoasterAppRoot: View {
             .onAppear {
                 coasterVM.setupInitialPoints()
             }
+        
+        // If a point is selected, display the gizmo panel
+        if coasterVM.selectedPointID != nil {
+            GizmoPanel(coasterVM: coasterVM)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+        }
     }
 }
 
