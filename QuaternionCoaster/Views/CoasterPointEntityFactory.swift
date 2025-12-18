@@ -44,7 +44,6 @@ struct CoasterPointEntityFactory {
         )
         blueAxis.position = [0, 0, Self.gizmoSize / 2]
         
-        // 3. Assemble and return the hierarchy
         entity.addChild(redAxis)
         entity.addChild(greenAxis)
         entity.addChild(blueAxis)
