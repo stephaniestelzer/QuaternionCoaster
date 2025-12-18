@@ -40,7 +40,7 @@ struct CoasterAppRoot: View {
                 GizmoPanel(coasterVM: coasterVM)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
                     .padding(.bottom, 40)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .transition(.asymmetric(insertion: .opacity.combined(with: .scale(scale: 0.9)), removal: .opacity))
             }
         }
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: coasterVM.selectedPointID)
