@@ -23,11 +23,10 @@ struct CoasterAppRoot: View {
             if coasterVM.selectedPointID == nil {
                 Group {
                     // Top Right: Simple Toggle
-                    ModeToggle(coasterVM: coasterVM)
+                    ModeToggle(coasterVM: coasterVM, selection: $coasterVM.rotationMode)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                         .padding(.top, 60)
                         .padding(.trailing, 20)
-                    
                     // Bottom Center: Action Sheet
                     MainActionView(coasterVM: coasterVM)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)

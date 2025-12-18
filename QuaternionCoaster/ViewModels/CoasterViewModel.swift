@@ -1,9 +1,10 @@
 import Foundation
 import simd
 
-enum RotationMode: String, CaseIterable {
+enum RotationMode: String, CaseIterable, Identifiable {
     case quaternion = "Quaternion"
     case euler = "Euler"
+    var id: String { self.rawValue }
 }
 
 class CoasterViewModel: ObservableObject {
@@ -14,7 +15,7 @@ class CoasterViewModel: ObservableObject {
      */
     @Published var points: [CoasterPoint] = []
     @Published var selectedPointID: UUID? = nil
-    @Published var interpolationMode: RotationMode = .quaternion
+    @Published var rotationMode: RotationMode = .quaternion
     /**
         Selected Logic Published Variables. Updated to signal to the coordinator in the view to run specific functions
         - trackUpdateID: when this is updated, the 'updateTrackPoints' function will execute in the View
