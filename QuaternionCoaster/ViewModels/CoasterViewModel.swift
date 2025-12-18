@@ -1,6 +1,11 @@
 import Foundation
 import simd
 
+enum RotationMode: String, CaseIterable {
+    case quaternion = "Quaternion"
+    case euler = "Euler"
+}
+
 class CoasterViewModel: ObservableObject {
     /**
         Published Variables. These are watched for changes by ARCoasterView
@@ -9,7 +14,7 @@ class CoasterViewModel: ObservableObject {
      */
     @Published var points: [CoasterPoint] = []
     @Published var selectedPointID: UUID? = nil
-    
+    @Published var interpolationMode: RotationMode = .quaternion
     /**
         Selected Logic Published Variables. Updated to signal to the coordinator in the view to run specific functions
         - trackUpdateID: when this is updated, the 'updateTrackPoints' function will execute in the View

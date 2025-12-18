@@ -6,23 +6,47 @@ import ARKit
 /* App Entry Point:
  Create a Coaster View Model (@StateObject annotation makes it persist for life of app)
 */
+// CoasterAppRoot.swift
 struct CoasterAppRoot: View {
     @StateObject var coasterVM = CoasterViewModel()
     
     var body: some View {
-        ARCoasterView(coasterVM: coasterVM)
-            .onAppear {
-                coasterVM.setupInitialPoints()
+        ZStack {
+            // AR View
+            ARCoasterView(coasterVM: coasterVM)
+                .onAppear {
+                    coasterVM.setupInitialPoints()
+                }
+                .ignoresSafeArea()
+            
+            // Resting State UI (Visible when no point is selected)
+            if coasterVM.selectedPointID == nil {
+                Group {
+                    // Top Right: Simple Toggle
+                    ModeToggle(coasterVM: coasterVM)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                        .padding(.top, 60)
+                        .padding(.trailing, 20)
+                    
+                    // Bottom Center: Action Sheet
+                    MainActionView(coasterVM: coasterVM)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                        .padding(.bottom, 40)
+                }
+                .transition(.asymmetric(insertion: .opacity.combined(with: .scale(scale: 0.9)), removal: .opacity))
             }
-        
-        // If a point is selected, display the gizmo panel
-        if coasterVM.selectedPointID != nil {
-            GizmoPanel(coasterVM: coasterVM)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
+            
+            // Selection State UI
+            if let _ = coasterVM.selectedPointID {
+                GizmoPanel(coasterVM: coasterVM)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                    .padding(.bottom, 40)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
         }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: coasterVM.selectedPointID)
     }
 }
-
 // MARK: - ARCoasterView
 /*
  Creates ARView for the SwiftUI App
