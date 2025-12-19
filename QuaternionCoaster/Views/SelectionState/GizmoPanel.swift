@@ -16,12 +16,24 @@ struct GizmoPanel: View {
                         
                         // Binding to Quaternion components
                         MathInput(value: $coasterVM.points[index].orientation.real, label: "w")
+                            .onChange(of: coasterVM.points[index].orientation.real) { old, new in
+                                coasterVM.newTrackUpdateID()
+                            }
                         Text("+")
                         MathInput(value: $coasterVM.points[index].orientation.imag.x, label: "i")
+                            .onChange(of: coasterVM.points[index].orientation.real) { old, new in
+                                coasterVM.newTrackUpdateID()
+                            }
                         Text("+")
                         MathInput(value: $coasterVM.points[index].orientation.imag.y, label: "j")
+                            .onChange(of: coasterVM.points[index].orientation.real) { old, new in
+                                coasterVM.newTrackUpdateID()
+                            }
                         Text("+")
                         MathInput(value: $coasterVM.points[index].orientation.imag.z, label: "k")
+                            .onChange(of: coasterVM.points[index].orientation.real) { old, new in
+                                coasterVM.newTrackUpdateID()
+                            }
                     }
                 }
                 

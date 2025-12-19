@@ -100,7 +100,6 @@ struct ARCoasterView: UIViewRepresentable {
 class Coordinator: NSObject {
     var coasterVM: CoasterViewModel
     weak var arView: ARView?
-    // private var addedAnchorIds: Set<UUID> = []
     private var trackAnchors: [UUID: AnchorEntity] = [:]
     
     // Selected Logic
@@ -117,10 +116,16 @@ class Coordinator: NSObject {
      */
     func updateTrackPoints(in arView: ARView) {
         for point in coasterVM.points {
+            // Create new point
             if trackAnchors[point.id] == nil {
                 let newAnchor = createARPoint(point)
                 arView.scene.addAnchor(newAnchor)
                 trackAnchors[point.id] = newAnchor
+            }
+            // Otherwise, update position and orientation of selected point
+            if let anchor = trackAnchors[point.id] {
+                anchor.position = point.position
+                anchor.setOrientation(point.orientation, relativeTo: nil)
             }
         }
     }
@@ -166,10 +171,10 @@ class Coordinator: NSObject {
             entity.model?.materials = [newMaterial]
 
             // Toggle Gizmo Visibility (The gizmo axes are children of this ModelEntity)
-            let gizmoIsVisible = isSelected
-            entity.children.forEach { child in
-                child.isEnabled = gizmoIsVisible
-            }
+//            let gizmoIsVisible = isSelected
+//            entity.children.forEach { child in
+//                child.isEnabled = gizmoIsVisible
+//            }
         }
     }
     

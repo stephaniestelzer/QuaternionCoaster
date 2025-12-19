@@ -25,6 +25,13 @@ class CoasterViewModel: ObservableObject {
     init() {
 
     }
+    
+    /**
+            Generates a new trackUpdateID to generate UI changes
+     */
+    func newTrackUpdateID() {
+        self.trackUpdateID = UUID()
+    }
 
     func setupInitialPoints() {
         addPoint(position: SIMD3(-0.3, 0, -0.6))
